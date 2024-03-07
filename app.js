@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import inquirer from 'inquirer';
+import downloadGitRepo from 'download-git-repo';
 import { globby } from 'globby';
 import path from 'path';
 import fs from 'fs-extra';
+import chalk from 'chalk';
+import ora from 'ora';
 
 import { fileURLToPath } from 'url';
 
@@ -21,49 +24,25 @@ program
 .action(async dirName => { 
 	console.log('--- name ---');
 	console.log(dirName);
-	const answers = await inquirer
-		.prompt([
-			{
-				name: 'compiler',
-				message: '选择需要的框架',
-				"type": "checkbox",
-				"choices": [ // 具体的选项
-					{
-						"name": "Babel",
-						"value": "babel",
-						"description": "Transpile modern JavaScript to older versions (for compatibility)",
-						"link": "https://babeljs.io/",
-					},
-					{
-						"name": "Router",
-						"value": "router",
-						"description": "Structure the app with dynamic pages",
-						"link": "https://router.vuejs.org/"
-					},
-				]
-			},
-			{
-				name: 'vue',
-				when: answers => answers.compiler.includes('babel'),
-			},
-		]);
+	if (fs.existsSync(dirName)) {
+		console.log(chalk.red(dirName + ' exists'));
+		return;
+	}
+	const spinner = ora('正在下载模版');
+	spinner.start();
 
-		console.log('---- answer ----');
-		console.log(answers);
-
-		const _files = await globby([path.join(path.dirname(__filename), 'template')], { dot: true })
-		let templateFiles = [];
-		_files.forEach(curPath => {
-			templateFiles.push({name: path.basename(curPath), content: fs.readFileSync(curPath, 'utf-8')});
-		});
-
-		templateFiles.forEach((item) => {
-			console.log(process.cwd());
-			const filePath = path.join(process.cwd(), dirName, item.name)
-			fs.ensureDirSync(path.dirname(filePath))
-			fs.writeFileSync(filePath, item.content)
-		})
-		console.log(_files);
+	const tempDir = Date.now() + 'tmp_demo_dir';
+	downloadGitRepo('rodson/create-demo-app', tempDir, function (err, data) {
+		console.log(err ? 'Error' : 'Success')
+		if (err === 'Error') {
+			spinner.fail('Request failed, refetch ...')
+		} else {
+			fs.copySync(path.resolve(process.cwd(), tempDir, 'template'), path.resolve(process.cwd(), dirName));
+			fs.removeSync(path.resolve(process.cwd(), tempDir), { recursive: true });
+			spinner.succeed();
+		}
+	  })
+	  return;
 })
 
 program.parse();
