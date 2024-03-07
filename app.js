@@ -37,9 +37,15 @@ program
 		if (err === 'Error') {
 			spinner.fail('Request failed, refetch ...')
 		} else {
-			fs.copySync(path.resolve(process.cwd(), tempDir, 'template'), path.resolve(process.cwd(), dirName));
-			fs.removeSync(path.resolve(process.cwd(), tempDir), { recursive: true });
-			spinner.succeed();
+			setTimeout(() => {
+				fs.copySync(path.resolve(process.cwd(), tempDir, 'template'), path.resolve(process.cwd(), dirName));
+				fs.removeSync(path.resolve(process.cwd(), tempDir), { recursive: true });
+				console.log(chalk.greenBright('更新package.json'));
+				const packageJson = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), dirName, 'package.json'), 'utf8'));
+				packageJson.name = dirName;
+				fs.writeFileSync(path.resolve(process.cwd(), dirName, 'package.json'), JSON.stringify(packageJson, null, 2));
+				spinner.succeed();
+			}, 10)
 		}
 	  })
 	  return;
