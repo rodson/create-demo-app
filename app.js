@@ -22,8 +22,6 @@ program
 .command('create <name>')
 .description('create a new project')
 .action(async dirName => { 
-	console.log('--- name ---');
-	console.log(dirName);
 	if (fs.existsSync(dirName)) {
 		console.log(chalk.red(dirName + ' exists'));
 		return;
