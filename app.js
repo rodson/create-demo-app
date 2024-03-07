@@ -28,24 +28,21 @@ program
 		console.log(chalk.red(dirName + ' exists'));
 		return;
 	}
-	const spinner = ora('正在下载模版');
+	const spinner = ora('下载模版');
 	spinner.start();
 
 	const tempDir = Date.now() + 'tmp_demo_dir';
 	downloadGitRepo('rodson/create-demo-app', tempDir, function (err, data) {
-		console.log(err ? 'Error' : 'Success')
 		if (err === 'Error') {
 			spinner.fail('Request failed, refetch ...')
 		} else {
-			setTimeout(() => {
-				fs.copySync(path.resolve(process.cwd(), tempDir, 'template'), path.resolve(process.cwd(), dirName));
-				fs.removeSync(path.resolve(process.cwd(), tempDir), { recursive: true });
-				console.log(chalk.greenBright('更新package.json'));
-				const packageJson = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), dirName, 'package.json'), 'utf8'));
-				packageJson.name = dirName;
-				fs.writeFileSync(path.resolve(process.cwd(), dirName, 'package.json'), JSON.stringify(packageJson, null, 2));
-				spinner.succeed();
-			}, 10)
+			spinner.succeed();
+			fs.copySync(path.resolve(process.cwd(), tempDir, 'template'), path.resolve(process.cwd(), dirName));
+			fs.removeSync(path.resolve(process.cwd(), tempDir), { recursive: true });
+			console.log(chalk.greenBright('更新package.json'));
+			const packageJson = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), dirName, 'package.json'), 'utf8'));
+			packageJson.name = dirName;
+			fs.writeFileSync(path.resolve(process.cwd(), dirName, 'package.json'), JSON.stringify(packageJson, null, 2));
 		}
 	  })
 	  return;
